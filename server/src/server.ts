@@ -1,3 +1,6 @@
+
+import './workers/ai-generation.worker';
+
 import { Server } from 'http';
 import app from './app';
 import { env } from './config/env';
@@ -6,6 +9,8 @@ import { connectDB, disconnectDB } from './config/db';
 import { disconnectRedis } from './config/redis';
 import { initializeWorker, closeWorker } from './workers/ai-generation.worker';
 import { initializeSocket } from './socket/socket';
+
+
 
 let server: Server;
 
@@ -36,7 +41,7 @@ startServer();
 
 const gracefulShutdown = async (signal: string) => {
   logger.info(`👋 ${signal} received. Shutting down server and database connection gracefully...`);
-  
+
   const shutdownTimeout = setTimeout(() => {
     logger.error('💥 Forced shutdown due to timeout!');
     process.exit(1);
@@ -63,7 +68,7 @@ const gracefulShutdown = async (signal: string) => {
 process.on('unhandledRejection', (err: any) => {
   logger.error('💥 UNHANDLED REJECTION! Shutting down server and process...');
   logger.error(err?.message || 'Unknown rejection', err);
-  
+
   if (server) {
     server.close(async () => {
       await closeWorker();
