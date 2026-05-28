@@ -1,0 +1,273 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --background: oklch(0.975 0 0);
+  --foreground: oklch(0.15 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.15 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.15 0 0);
+  --primary: oklch(0.37 0.3 247);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.95 0 0);
+  --secondary-foreground: oklch(0.15 0 0);
+  --muted: oklch(0.95 0 0);
+  --muted-foreground: oklch(0.5 0 0);
+  --accent: oklch(0.37 0.3 247);
+  --accent-foreground: oklch(1 0 0);
+  --destructive: oklch(0.63 0.2 25);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.94 0 0);
+  --input: oklch(0.97 0 0);
+  --ring: oklch(0.37 0.3 247);
+  --chart-1: oklch(0.37 0.3 247);
+  --chart-2: oklch(0.55 0.15 250);
+  --chart-3: oklch(0.45 0.2 260);
+  --chart-4: oklch(0.6 0.18 280);
+  --chart-5: oklch(0.65 0.15 245);
+  --radius: 1rem;
+  --sidebar: oklch(0.985 0.005 250);
+  --sidebar-foreground: oklch(0.15 0 0);
+  --sidebar-primary: oklch(0.37 0.3 247);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.95 0 0);
+  --sidebar-accent-foreground: oklch(0.15 0 0);
+  --sidebar-border: oklch(0.94 0 0);
+  --sidebar-ring: oklch(0.37 0.3 247);
+  --brand-orange: oklch(0.65 0.23 35);
+  --brand-orange-foreground: oklch(0.98 0 0);
+}
+
+.dark {
+  --background: oklch(0.12 0 0);
+  --foreground: oklch(0.95 0 0);
+  --card: oklch(0.15 0.01 250);
+  --card-foreground: oklch(0.95 0 0);
+  --popover: oklch(0.15 0.01 250);
+  --popover-foreground: oklch(0.95 0 0);
+  --primary: oklch(0.55 0.25 250);
+  --primary-foreground: oklch(0.12 0 0);
+  --secondary: oklch(0.25 0.01 250);
+  --secondary-foreground: oklch(0.95 0 0);
+  --muted: oklch(0.25 0.01 250);
+  --muted-foreground: oklch(0.65 0 0);
+  --accent: oklch(0.55 0.25 250);
+  --accent-foreground: oklch(0.12 0 0);
+  --destructive: oklch(0.65 0.2 25);
+  --destructive-foreground: oklch(0.95 0 0);
+  --border: oklch(0.25 0.01 250);
+  --input: oklch(0.2 0.01 250);
+  --ring: oklch(0.55 0.25 250);
+  --chart-1: oklch(0.55 0.25 250);
+  --chart-2: oklch(0.6 0.2 250);
+  --chart-3: oklch(0.65 0.18 260);
+  --chart-4: oklch(0.7 0.15 280);
+  --chart-5: oklch(0.75 0.12 245);
+  --sidebar: oklch(0.12 0 0);
+  --sidebar-foreground: oklch(0.95 0 0);
+  --sidebar-primary: oklch(0.55 0.25 250);
+  --sidebar-primary-foreground: oklch(0.12 0 0);
+  --sidebar-accent: oklch(0.25 0.01 250);
+  --sidebar-accent-foreground: oklch(0.95 0 0);
+  --sidebar-border: oklch(0.25 0.01 250);
+  --sidebar-ring: oklch(0.55 0.25 250);
+  --brand-orange: oklch(0.65 0.23 35);
+  --brand-orange-foreground: oklch(0.98 0 0);
+}
+
+@theme inline {
+  --font-sans: 'Geist', 'Geist Fallback';
+  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-brand-orange: var(--brand-orange);
+  --color-brand-orange-foreground: var(--brand-orange-foreground);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* ==========================================================================
+   GLOBAL PRINT STYLES
+   Ensures the exam paper prints correctly on Portrait A4.
+   Works even when "Background graphics" is OFF in Chrome print dialog.
+   ========================================================================== */
+@media print {
+  /* Tell the browser to honour colours when Background graphics IS on */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 15mm 12mm 15mm 12mm;
+  }
+
+  /* Reset html & body */
+  html,
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Kill DashboardShell min-h-screen */
+  .min-h-screen {
+    min-height: auto !important;
+    height: auto !important;
+  }
+
+  /* Kill pt-16 top offset */
+  .pt-16 {
+    padding-top: 0 !important;
+  }
+
+  /* Kill md:ml-64 sidebar offset (Tailwind v4 escapes the colon in the DOM) */
+  [class*='md:ml-64'],
+  [class*='md\\:ml-64'] {
+    margin-left: 0 !important;
+  }
+
+  /* Hide sidebar, navbar, bottom nav */
+  header,
+  footer,
+  nav,
+  aside {
+    display: none !important;
+  }
+
+  /* Hide screen-only elements */
+  .print\:hidden {
+    display: none !important;
+  }
+
+  /* Reset main and layout wrappers */
+  main,
+  main > * {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: auto !important;
+    height: auto !important;
+    position: static !important;
+    display: block !important;
+    overflow: visible !important;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Print container: full width, no offsets */
+  .print-container {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: auto !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* PDF wrapper: no page-break forced before it */
+  .pdf-print-wrapper {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    min-height: auto !important;
+    height: auto !important;
+    page-break-before: avoid !important;
+    break-before: avoid !important;
+    transform: none !important;
+  }
+
+  /* ==========================================================
+     EXAM PAPER: clean white + black everywhere.
+     This single rule makes every element print correctly
+     regardless of the "Background graphics" browser setting.
+     ========================================================== */
+  .print-container,
+  .print-container * {
+    background: white !important;
+    color: black !important;
+    border-color: black !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    border-radius: 0 !important;
+  }
+
+  /* Remove card chrome (rounded corners, shadow, outer border) */
+  .rounded-\[2rem\] {
+    border-radius: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Section wrappers: allow natural page breaks */
+  .paper-wrapper {
+    page-break-inside: auto !important;
+    break-inside: auto !important;
+  }
+
+  /* Keep individual questions together */
+  .question-section {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Compact spacing */
+  .space-y-10 > * {
+    margin-top: 10px !important;
+  }
+  .space-y-6 > * {
+    margin-top: 6px !important;
+  }
+}
