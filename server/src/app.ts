@@ -43,7 +43,7 @@ app.get('/health', (_req: Request, res: Response) => {
   const dbHealth = checkDbHealth();
   const redisHealth = checkRedisHealth();
   const serverHealthy = true;
-  
+
   // Overall success depends on server, MongoDB, and Redis all being healthy
   const isHealthy = serverHealthy && dbHealth.status === 'healthy' && redisHealth.status === 'healthy';
 
@@ -75,6 +75,15 @@ app.use('/api/test', testRouter);
 app.use('/api/assignments', assignmentRouter);
 app.use('/api/uploads', uploadRouter);
 app.use('/api/jobs', jobRouter);
+
+
+app.get('/', (_req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'Veda AI Backend is running successfully 🚀',
+  });
+});
+
 
 // Fallback for unhandled routes - Throw a 404 AppError
 app.all('*', (req: Request, _res: Response, next: NextFunction) => {
