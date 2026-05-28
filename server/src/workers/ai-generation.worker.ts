@@ -11,6 +11,10 @@ import { generateQuestionPaper, normalizeQuestionType } from '../services/ai-gen
 let worker: Worker<GenerationJobPayload>;
 
 
+console.log('✅ AI Generation Worker Started Successfully');
+
+
+
 /**
  * Main job processor that runs asynchronously in the background
  */
@@ -121,10 +125,10 @@ export const processJob = async (job: Job<GenerationJobPayload>) => {
     return { paperId: savedPaper._id };
   } catch (error: any) {
     logger.error(`💥 Job #${job.id} processing failed: ${error.message}`, error);
-    
+
     // Check if it's a rate limit error to display user-friendly message
-    const errorMessage = error.name === 'RateLimitError' || error.message.includes('quota exhausted') 
-      ? 'Daily AI quota exhausted. Please retry later.' 
+    const errorMessage = error.name === 'RateLimitError' || error.message.includes('quota exhausted')
+      ? 'Daily AI quota exhausted. Please retry later.'
       : error.message;
 
     // Fallback: update status to failed in database
@@ -136,7 +140,7 @@ export const processJob = async (job: Job<GenerationJobPayload>) => {
       assignment.generationStatus = 'failed';
       await assignment.save();
     }
-    
+
     emitToJobRoom(jobId, 'job:failed', { jobId, error: errorMessage });
     throw error; // Let BullMQ know the job failed
   }
