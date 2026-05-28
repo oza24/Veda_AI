@@ -21,7 +21,7 @@ export function AssignmentsListView() {
   const [loading, setLoading] = useState(false);
   const { assignments, deleteAssignment, setAssignments } = useAssignmentStore();
 
-  const SERVER_URL = 'http://localhost:3000';
+  const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'N/A';

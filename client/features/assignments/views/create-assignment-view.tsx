@@ -47,8 +47,8 @@ export function CreateAssignmentView() {
   const [errorMessage, setErrorMessage] = useState('');
   const [statusText, setStatusText] = useState('');
 
-  // Read from NEXT_PUBLIC_SERVER_URL (set in .env.local) — fallback to :3000 for safety
-  const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000';
+  // Read from NEXT_PUBLIC_SERVER_URL (set in .env.local) — fallback to :5000 (backend port)
+  const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
   console.log('🌐 SERVER_URL:', SERVER_URL);
 
   const totalMarks = questionRows.reduce((sum, row) => sum + row.numQuestions * row.marks, 0);
@@ -262,7 +262,8 @@ export function CreateAssignmentView() {
       }
     } catch (err: any) {
       console.error('💥 Core Submission Failure:', err);
-      handleFailure(err.message || 'An unexpected blocker enqueued.');
+      console.error('📡 Target SERVER_URL was:', SERVER_URL);
+      handleFailure(err.message || 'An unexpected network error occurred. Please check backend connectivity.');
     }
   };
 

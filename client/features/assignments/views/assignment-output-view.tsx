@@ -70,7 +70,7 @@ export function AssignmentOutputView() {
   const [error, setError] = useState<string | null>(null);
   const [showAnswerKey, setShowAnswerKey] = useState(false);
 
-  const SERVER_URL = 'http://localhost:3000';
+  const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
 
   useEffect(() => {
     if (!id) {
