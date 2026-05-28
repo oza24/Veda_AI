@@ -19,11 +19,16 @@ const retryStrategy = (times) => {
     return delay;
 };
 // Create a reusable Redis Client Singleton instance
-exports.redis = new ioredis_1.default({
-    host: env_1.env.REDIS_HOST,
-    port: env_1.env.REDIS_PORT,
+// export const redis = new Redis({
+//   host: env.REDIS_HOST,
+//   port: env.REDIS_PORT,
+//   retryStrategy,
+//   maxRetriesPerRequest: null, // Essential for BullMQ and robust reconnection operations
+// });
+exports.redis = new ioredis_1.default(env_1.env.REDIS_URL, {
     retryStrategy,
-    maxRetriesPerRequest: null, // Essential for BullMQ and robust reconnection operations
+    maxRetriesPerRequest: null,
+    tls: {}
 });
 // Configure client event logging
 exports.redis.on('connect', () => {

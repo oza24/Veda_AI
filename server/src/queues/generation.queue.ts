@@ -16,12 +16,13 @@ export interface GenerationJobPayload {
   questionRows?: any[];
 }
 
+import Redis from 'ioredis';
+
 // Dedicated Redis Connection configuration for the Queue client
-const connection = {
-  host: env.REDIS_HOST,
-  port: env.REDIS_PORT,
+const connection = new Redis(env.REDIS_URL, {
   maxRetriesPerRequest: null,
-};
+  tls: {}
+});
 
 // Export the singleton Generation Queue instance
 export const generationQueue = new Queue<GenerationJobPayload>(QUEUE_NAME, {

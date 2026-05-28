@@ -16,8 +16,12 @@ const envSchema = zod_1.z.object({
     MONGO_URI: zod_1.z.string({
         required_error: 'MONGO_URI is required for database connections',
     }),
-    REDIS_HOST: zod_1.z.string().default('localhost'),
-    REDIS_PORT: zod_1.z.coerce.number().default(6379),
+    // REDIS_HOST: z.string().default('localhost'),
+    // REDIS_PORT: z.coerce.number().default(6379),
+    // REDIS_URL: z.string().optional(),
+    REDIS_URL: zod_1.z.string({
+        required_error: 'REDIS_URL is required for Redis connections',
+    }),
     GROQ_API_KEY: zod_1.z.string({
         required_error: 'GROQ_API_KEY is required for AI generation',
     }),

@@ -1,36 +1,46 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generateQuestionPaper = exports.extractIntentFromPrompt = exports.normalizeQuestionType = void 0;
+exports.generateQuestionPaper = exports.extractIntentFromPrompt = exports.normalizeQuestionType = exports.RateLimitError = void 0;
 const groq_1 = require("../config/groq");
 const logger_1 = require("../utils/logger");
+class RateLimitError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'RateLimitError';
+    }
+}
+exports.RateLimitError = RateLimitError;
 // Helper sleep function for retry logic
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const TYPE_MAP = {
+    mcq: "multiple_choice",
+    multiplechoice: "multiple_choice",
+    multiple_choice: "multiple_choice",
+    short: "short_answer",
+    shortanswer: "short_answer",
+    short_answer: "short_answer",
+    sshort_answer: "short_answer",
+    shorttype: "short_answer",
+    long: "long_answer",
+    longanswer: "long_answer",
+    long_answer: "long_answer",
+    essay: "long_answer",
+    diagram: "diagram",
+    true_false: "true_false",
+    truefalse: "true_false"
+};
 /**
  * Normalise any user-facing question type label to internal AI type key.
  */
 const normalizeQuestionType = (raw) => {
-    const v = (raw || '')
-        .toLowerCase()
-        .trim()
-        .replace(/[_\-]/g, ' ')
-        .replace(/\s+/g, ' ');
-    if (v.includes('mcq') || v.includes('multiple') || v.includes('choice'))
-        return 'multiple_choice';
-    if (v.includes('short'))
+    if (!raw)
         return 'short_answer';
-    if (v.includes('long') || v.includes('essay'))
-        return 'long_answer';
-    if (v.includes('true') || v.includes('false'))
-        return 'true_false';
-    if (v.includes('diagram') || v.includes('graph'))
-        return 'long_answer';
-    if (v.includes('numerical') || v.includes('problem'))
-        return 'long_answer';
-    if (v.includes('fill') || v.includes('blank'))
-        return 'short_answer';
-    if (v.includes('one word') || v.includes('one-word'))
-        return 'short_answer';
-    return v || 'short_answer'; // safe default
+    const v = raw.toLowerCase().trim().replace(/[_\-\s]+/g, '');
+    for (const [key, val] of Object.entries(TYPE_MAP)) {
+        if (v.includes(key))
+            return val;
+    }
+    return TYPE_MAP[v] || 'short_answer';
 };
 exports.normalizeQuestionType = normalizeQuestionType;
 /**
@@ -67,7 +77,7 @@ Return ONLY a valid JSON object matching this schema:
 `;
     try {
         const response = await groq_1.groq.chat.completions.create({
-            model: 'llama-3-8b-8192',
+            model: 'llama-3.1-8b-instant',
             messages: [
                 { role: 'system', content: systemInstructions },
                 { role: 'user', content: prompt }
@@ -83,8 +93,8 @@ Return ONLY a valid JSON object matching this schema:
         const parsed = JSON.parse(cleanedText);
         const sections = (parsed.sections || []).map((s) => ({
             type: (0, exports.normalizeQuestionType)(s.type),
-            count: s.count,
-            marks: s.marksPerQuestion || s.marks
+            count: Number(s.count) || 5,
+            marks: Number(s.marksPerQuestion || s.marks) || 2
         }));
         logger_1.logger.info(`🧠 Intent Parser Results: Subject: ${parsed.subject}, Sections: ${JSON.stringify(sections)}`);
         return {
@@ -130,7 +140,7 @@ const extractJsonSafely = (text) => {
 /**
  * Execute Groq completions with robust exponential backoff to handle rate limits (429) or transient errors
  */
-const executeWithRetry = async (apiCall, maxRetries = 3) => {
+const executeWithRetry = async (apiCall, maxRetries = 2) => {
     let attempt = 0;
     while (true) {
         try {
@@ -139,8 +149,11 @@ const executeWithRetry = async (apiCall, maxRetries = 3) => {
         catch (error) {
             attempt++;
             const statusCode = error.status || error.statusCode;
-            const isTransient = statusCode === 429 || statusCode === 503 || statusCode >= 500 ||
-                error.message?.includes('429') || error.message?.includes('rate limit');
+            if (statusCode === 429 || error.message?.includes('429') || error.message?.includes('rate limit')) {
+                logger_1.logger.error(`💥 Groq API Rate Limit Exceeded. Quota exhausted.`);
+                throw new RateLimitError('Daily AI quota exhausted. Please retry later.');
+            }
+            const isTransient = statusCode === 503 || statusCode >= 500;
             if (attempt > maxRetries || !isTransient) {
                 logger_1.logger.error(`💥 Groq API request failed after ${attempt - 1} retries. Error: ${error.message}`);
                 throw error;
@@ -222,6 +235,19 @@ const generateQuestionPaper = async (subject, difficulty, prompt, gradeLevel = '
         }
         logger_1.logger.info(`🎙️ Using Mode B — prompt-only. Effective constraints: ${JSON.stringify(effectiveRows)}`);
     }
+    // Safe Fallbacks
+    effectiveRows = effectiveRows.map(row => ({
+        type: row.type,
+        numQuestions: (!row.numQuestions || row.numQuestions < 1) ? 5 : row.numQuestions,
+        marks: (!row.marks || row.marks < 1) ? 2 : row.marks
+    }));
+    // Debug Logging
+    logger_1.logger.info(`🔍 Parsed Subject: ${subject}`);
+    logger_1.logger.info(`🔍 Parsed Sections: ${JSON.stringify(effectiveRows)}`);
+    logger_1.logger.info(`🔍 Normalized Types: ${effectiveRows.map(r => r.type).join(', ')}`);
+    logger_1.logger.info(`🔍 Fallbacks Applied: Safe defaults injected where necessary.`);
+    logger_1.logger.info(`🔍 Selected Model: llama-3.3-70b-versatile for generation.`);
+    logger_1.logger.info(`🔍 Token Usage: Optimized prompts enabled.`);
     // ── Step 2: Build the strict constraint block for the system prompt ──────
     // ── Step 2: Build the strict constraint block for the system prompt ──────
     const buildStrictConstraintBlock = (row, sectionIdx) => {
@@ -257,7 +283,9 @@ ABSOLUTE RULES:
       "question": "Write the question text here",
       "type": "${row.type}",
       "marks": ${row.marks},
-      "difficulty": "${difficulty}"${row.type === 'multiple_choice' ? ',\n      "options": ["Option A", "Option B", "Option C", "Option D"],\n      "correctAnswer": "Option A"' : ''}${row.type === 'true_false' ? ',\n      "correctAnswer": "True"' : ''}
+      "difficulty": "${difficulty}",
+      "correctAnswer": "Write the correct answer here",
+      "explanation": "Write a detailed explanation of the solution"${row.type === 'multiple_choice' ? ',\n      "options": ["Option A", "Option B", "Option C", "Option D"]' : ''}
     }`;
         return `
 You are a strict exam paper generation engine. You have ONE job: output a valid JSON containing the questions for ONE section of an exam.
@@ -282,10 +310,12 @@ Context:
   - Difficulty: ${difficulty}
 
 Question type field values (use EXACTLY these strings):
-  "multiple_choice" — must include "options": [4 strings], "correctAnswer": one of the options
-  "short_answer"    — NO options field. Short 1-3 sentence answer.
-  "long_answer"     — NO options field. Paragraph/essay answer.
+  "multiple_choice" — must include "options": [4 strings], "correctAnswer": exact string of the correct option
+  "short_answer"    — NO options field. "correctAnswer" should be a short 1-3 sentence answer.
+  "long_answer"     — NO options field. "correctAnswer" should be a paragraph/essay answer.
   "true_false"      — "correctAnswer": "True" or "False" only.
+
+For ALL types, you MUST include a "correctAnswer" and an "explanation" string field.
 
 JSON schema to follow (return EXACTLY this structure):
 {
@@ -334,6 +364,9 @@ CRITICAL REMINDERS:
                     violations.push(`Q${qIdx + 1} is multiple_choice but missing valid options array`);
                 }
             }
+            if (!q.correctAnswer || q.correctAnswer.trim() === '') {
+                violations.push(`Q${qIdx + 1} is missing a correctAnswer`);
+            }
         }
         if (violations.length > 0) {
             logger_1.logger.warn(`❌ Validation violations found:`);
@@ -361,7 +394,7 @@ Return ONLY valid JSON in this exact format:
 }
 `;
             const response = await groq_1.groq.chat.completions.create({
-                model: 'llama-3-8b-8192',
+                model: 'llama-3.1-8b-instant',
                 messages: [{ role: 'user', content: prompt }],
                 response_format: { type: 'json_object' },
                 temperature: 0,
@@ -383,7 +416,7 @@ Return ONLY valid JSON in this exact format:
     };
     // ── Step 5: Generation loop per section with retry ───────────────────────────────────
     const finalSections = [];
-    const maxSemanticRetries = 4; // 4 attempts total before hard fail
+    const maxSemanticRetries = 1; // Reduced from 4 to 1 to prevent token explosions
     for (let idx = 0; idx < effectiveRows.length; idx++) {
         const row = effectiveRows[idx];
         if (!row)

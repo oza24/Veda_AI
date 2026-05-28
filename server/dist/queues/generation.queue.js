@@ -1,4 +1,7 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.addGenerationJob = exports.generationQueue = exports.QUEUE_NAME = void 0;
 const bullmq_1 = require("bullmq");
@@ -6,12 +9,12 @@ const env_1 = require("../config/env");
 const logger_1 = require("../utils/logger");
 const socket_1 = require("../socket/socket");
 exports.QUEUE_NAME = 'ai-question-generation';
+const ioredis_1 = __importDefault(require("ioredis"));
 // Dedicated Redis Connection configuration for the Queue client
-const connection = {
-    host: env_1.env.REDIS_HOST,
-    port: env_1.env.REDIS_PORT,
+const connection = new ioredis_1.default(env_1.env.REDIS_URL, {
     maxRetriesPerRequest: null,
-};
+    tls: {}
+});
 // Export the singleton Generation Queue instance
 exports.generationQueue = new bullmq_1.Queue(exports.QUEUE_NAME, {
     connection,

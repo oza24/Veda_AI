@@ -1,4 +1,7 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.closeWorker = exports.initializeWorker = exports.processJob = void 0;
 const bullmq_1 = require("bullmq");
@@ -106,28 +109,32 @@ const processJob = async (job) => {
     }
     catch (error) {
         logger_1.logger.error(`💥 Job #${job.id} processing failed: ${error.message}`, error);
+        // Check if it's a rate limit error to display user-friendly message
+        const errorMessage = error.name === 'RateLimitError' || error.message.includes('quota exhausted')
+            ? 'Daily AI quota exhausted. Please retry later.'
+            : error.message;
         // Fallback: update status to failed in database
         jobStatus.status = 'failed';
-        jobStatus.error = error.message;
+        jobStatus.error = errorMessage;
         await jobStatus.save();
         if (assignment) {
             assignment.generationStatus = 'failed';
             await assignment.save();
         }
-        (0, socket_1.emitToJobRoom)(jobId, 'job:failed', { jobId, error: error.message });
+        (0, socket_1.emitToJobRoom)(jobId, 'job:failed', { jobId, error: errorMessage });
         throw error; // Let BullMQ know the job failed
     }
 };
 exports.processJob = processJob;
+const ioredis_1 = __importDefault(require("ioredis"));
 /**
  * Initialize background BullMQ Worker
  */
 const initializeWorker = () => {
-    const connection = {
-        host: env_1.env.REDIS_HOST,
-        port: env_1.env.REDIS_PORT,
+    const connection = new ioredis_1.default(env_1.env.REDIS_URL, {
         maxRetriesPerRequest: null,
-    };
+        tls: {}
+    });
     worker = new bullmq_1.Worker(generation_queue_1.QUEUE_NAME, exports.processJob, {
         connection,
         concurrency: 2, // Process up to 2 papers concurrently

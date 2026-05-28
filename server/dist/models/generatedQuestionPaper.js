@@ -66,6 +66,10 @@ const QuestionSchema = new mongoose_1.Schema({
         type: String,
         trim: true,
     },
+    explanation: {
+        type: String,
+        trim: true,
+    },
     marks: {
         type: Number,
         required: [true, 'Marks is required'],

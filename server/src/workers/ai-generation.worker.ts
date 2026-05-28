@@ -142,15 +142,16 @@ export const processJob = async (job: Job<GenerationJobPayload>) => {
   }
 };
 
+import Redis from 'ioredis';
+
 /**
  * Initialize background BullMQ Worker
  */
 export const initializeWorker = (): void => {
-  const connection = {
-    host: env.REDIS_HOST,
-    port: env.REDIS_PORT,
+  const connection = new Redis(env.REDIS_URL, {
     maxRetriesPerRequest: null,
-  };
+    tls: {}
+  });
 
   worker = new Worker<GenerationJobPayload>(QUEUE_NAME, processJob, {
     connection,
